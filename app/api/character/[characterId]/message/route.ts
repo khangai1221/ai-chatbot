@@ -1,4 +1,3 @@
-import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, ChatSession } from "@google/generative-ai";
