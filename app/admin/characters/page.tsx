@@ -21,12 +21,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import Link from "next/link";
 
 interface Character {
   id: string;
   name: string;
   description: string;
   image: string;
+  basePrompt?: string;
+  greetingText?: string;
 }
 
 export default function AdminCharactersPage() {
@@ -41,6 +44,8 @@ export default function AdminCharactersPage() {
     name: "",
     description: "",
     image: null as File | null,
+    basePrompt: "",
+    greetingText: "",
   });
 
   useEffect(() => {
@@ -53,12 +58,16 @@ export default function AdminCharactersPage() {
         name: editingCharacter.name,
         description: editingCharacter.description,
         image: null,
+        basePrompt: editingCharacter.basePrompt || "",
+        greetingText: editingCharacter.greetingText || "",
       });
     } else {
       setFormData({
         name: "",
         description: "",
         image: null,
+        basePrompt: "",
+        greetingText: "",
       });
     }
   }, [editingCharacter]);
@@ -85,7 +94,10 @@ export default function AdminCharactersPage() {
     });
 
     if (!response.ok) {
-      throw new Error("Upload failed");
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: "Upload failed" }));
+      throw new Error(errorData.details || errorData.error || "Upload failed");
     }
 
     const data = await response.json();
@@ -148,6 +160,8 @@ export default function AdminCharactersPage() {
         name,
         description,
         image: imageUrl,
+        basePrompt: formData.basePrompt,
+        greetingText: formData.greetingText,
       };
 
       const url = editingCharacter
@@ -167,7 +181,13 @@ export default function AdminCharactersPage() {
         await fetchCharacters();
         setDialogOpen(false);
         setEditingCharacter(null);
-        setFormData({ name: "", description: "", image: null });
+        setFormData({
+          name: "",
+          description: "",
+          image: null,
+          basePrompt: "",
+          greetingText: "",
+        });
       } else {
         alert(`Failed to ${editingCharacter ? "update" : "create"} character`);
       }
@@ -229,6 +249,28 @@ export default function AdminCharactersPage() {
                 />
               </div>
               <div>
+                <Label htmlFor="basePrompt">Base Prompt</Label>
+                <Input
+                  id="basePrompt"
+                  value={formData.basePrompt}
+                  onChange={(e) =>
+                    setFormData({ ...formData, basePrompt: e.target.value })
+                  }
+                  placeholder="Enter the base prompt for this character"
+                />
+              </div>
+              <div>
+                <Label htmlFor="greetingText">Greeting Text</Label>
+                <Input
+                  id="greetingText"
+                  value={formData.greetingText}
+                  onChange={(e) =>
+                    setFormData({ ...formData, greetingText: e.target.value })
+                  }
+                  placeholder="Enter the greeting message"
+                />
+              </div>
+              <div>
                 <Label htmlFor="image">Image</Label>
                 <Input
                   id="image"
@@ -265,7 +307,6 @@ export default function AdminCharactersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead>Image</TableHead>
@@ -275,7 +316,6 @@ export default function AdminCharactersPage() {
         <TableBody>
           {characters.map((character) => (
             <TableRow key={character.id}>
-              <TableCell>{character.id}</TableCell>
               <TableCell>{character.name}</TableCell>
               <TableCell>{character.description}</TableCell>
               <TableCell>
@@ -289,6 +329,11 @@ export default function AdminCharactersPage() {
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
+                  <Link href={`/chat/${character.id}`}>
+                    <Button variant="default" size="sm">
+                      Chat
+                    </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     size="sm"
