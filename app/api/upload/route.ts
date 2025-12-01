@@ -1,5 +1,6 @@
-import { put } from "@vercel/blob";
+import { writeFile } from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
+import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,23 +13,42 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "File must be an image" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File must be an image" },
+        { status: 400 }
+      );
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: "File size must be less than 5MB" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File size must be less than 5MB" },
+        { status: 400 }
+      );
     }
+
+    // Convert File → Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     // Generate unique filename
     const filename = `character-${Date.now()}-${file.name}`;
+    const filepath = path.join(process.cwd(), "public", "uploads", filename);
 
-    // Upload to Vercel Blob
-    const blob = await put(filename, file, {
-      access: "public",
-    });
+    // Ensure uploads directory exists
+    const fs = await import("fs");
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
 
-    return NextResponse.json({ url: blob.url });
+    // Write file to public/uploads
+    await writeFile(filepath, buffer);
+
+    // Return public URL
+    const url = `/uploads/${filename}`;
+
+    return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
