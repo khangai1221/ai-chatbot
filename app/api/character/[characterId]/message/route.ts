@@ -126,3 +126,32 @@ export const POST = async (
     );
   }
 };
+
+export const DELETE = async (
+  req: NextRequest,
+  { params }: { params: Promise<{ characterId: string }> }
+) => {
+  try {
+    const { characterId } = await params;
+
+    // Delete all messages for this character
+    await prisma.message.deleteMany({
+      where: {
+        characterId,
+      },
+    });
+
+    return NextResponse.json({ message: "Chat history deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat history:", error);
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete chat history",
+      },
+      { status: 500 }
+    );
+  }
+};
