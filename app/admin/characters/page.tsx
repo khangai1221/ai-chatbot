@@ -1,14 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -135,6 +127,15 @@ export default function AdminCharactersPage() {
     setDialogOpen(true);
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth", { method: "DELETE" });
+      window.location.href = "/admin/login";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setUploading(true);
@@ -230,6 +231,13 @@ export default function AdminCharactersPage() {
               <Link href="/">
                 <Button variant="outline">← Back to Home</Button>
               </Link>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+              >
+                Logout
+              </Button>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -252,33 +260,45 @@ export default function AdminCharactersPage() {
                     Create Character
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
+                <DialogContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader className="pb-4">
+                    <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                       {editingCharacter
                         ? "Edit Character"
                         : "Create New Character"}
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="text-gray-600 dark:text-gray-300">
                       {editingCharacter
-                        ? "Update the character details."
-                        : "Add a new character to the system."}
+                        ? "Update the character details below."
+                        : "Fill in the details to add a new character to the system."}
                     </DialogDescription>
                   </DialogHeader>
-                  <form onSubmit={onSubmit} className="space-y-4">
-                    <div>
-                      <Label htmlFor="name">Name</Label>
+                  <form onSubmit={onSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="name"
+                        className="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        Name *
+                      </Label>
                       <Input
                         id="name"
                         value={formData.name}
                         onChange={(e) =>
                           setFormData({ ...formData, name: e.target.value })
                         }
+                        placeholder="Enter character name"
+                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400"
                         required
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="description">Description</Label>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="description"
+                        className="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        Description *
+                      </Label>
                       <Input
                         id="description"
                         value={formData.description}
@@ -288,11 +308,18 @@ export default function AdminCharactersPage() {
                             description: e.target.value,
                           })
                         }
+                        placeholder="Enter character description"
+                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400"
                         required
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="basePrompt">Base Prompt</Label>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="basePrompt"
+                        className="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        Base Prompt
+                      </Label>
                       <Input
                         id="basePrompt"
                         value={formData.basePrompt}
@@ -303,10 +330,16 @@ export default function AdminCharactersPage() {
                           })
                         }
                         placeholder="Enter the base prompt for this character"
+                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="greetingText">Greeting Text</Label>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="greetingText"
+                        className="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        Greeting Text
+                      </Label>
                       <Input
                         id="greetingText"
                         value={formData.greetingText}
@@ -317,10 +350,16 @@ export default function AdminCharactersPage() {
                           })
                         }
                         placeholder="Enter the greeting message"
+                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 dark:focus:border-blue-400"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="image">Image</Label>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="image"
+                        className="text-sm font-medium text-gray-900 dark:text-white"
+                      >
+                        Image {editingCharacter ? "(Optional)" : "*"}
+                      </Label>
                       <Input
                         id="image"
                         type="file"
@@ -331,23 +370,41 @@ export default function AdminCharactersPage() {
                             image: e.target.files?.[0] || null,
                           })
                         }
+                        className="bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white file:bg-blue-50 file:text-blue-700 file:border-0 file:rounded file:px-3 file:py-1 file:mr-3 file:font-medium hover:file:bg-blue-100 dark:file:bg-blue-900 dark:file:text-blue-300"
                         required={!editingCharacter}
                       />
                       {editingCharacter && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           Leave empty to keep current image
                         </p>
                       )}
                     </div>
-                    <Button type="submit" disabled={uploading}>
-                      {uploading
-                        ? editingCharacter
-                          ? "Updating..."
-                          : "Creating..."
-                        : editingCharacter
-                        ? "Update"
-                        : "Create"}
-                    </Button>
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setDialogOpen(false)}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={uploading}
+                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium"
+                      >
+                        {uploading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            {editingCharacter ? "Updating..." : "Creating..."}
+                          </div>
+                        ) : editingCharacter ? (
+                          "Update Character"
+                        ) : (
+                          "Create Character"
+                        )}
+                      </Button>
+                    </div>
                   </form>
                 </DialogContent>
               </Dialog>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import AuthNav from "@/components/auth-nav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,20 +54,7 @@ export default function RootLayout({
                   </span>
                 </Link>
               </div>
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/admin/characters"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-105"
-                >
-                  Admin
-                </Link>
-              </div>
+              <AuthNav />
             </div>
           </div>
         </nav>
