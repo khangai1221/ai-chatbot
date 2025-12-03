@@ -87,7 +87,40 @@ export const POST = async (
       });
     }
 
-    const result = await chat.sendMessage(content);
+    // Retry logic for handling rate limits
+    let result;
+    let retries = 0;
+    const maxRetries = 3;
+    const baseDelay = 1000; // 1 second
+
+    while (retries < maxRetries) {
+      try {
+        result = await chat.sendMessage(content);
+        break; // Success, exit loop
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes("429") &&
+          retries < maxRetries - 1
+        ) {
+          const delay = baseDelay * Math.pow(2, retries); // Exponential backoff
+          console.log(
+            `Rate limit hit, retrying in ${delay}ms... (attempt ${
+              retries + 1
+            }/${maxRetries})`
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          retries++;
+        } else {
+          throw error; // Re-throw if not 429 or max retries reached
+        }
+      }
+    }
+
+    if (!result) {
+      throw new Error("Failed to get response after retries");
+    }
+
     const response = result.response;
     const text = response.text();
     await prisma.message.create({
