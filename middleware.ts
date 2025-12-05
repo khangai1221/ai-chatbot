@@ -20,6 +20,19 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Protect user chat routes
+  if (request.nextUrl.pathname.startsWith("/chat/")) {
+    // Check for user session cookie (JWT token)
+    const userSession = request.cookies.get("user_session");
+
+    if (!userSession || !userSession.value) {
+      // Redirect to user login page with return URL
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 

@@ -25,9 +25,12 @@ export default function AuthNav() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth", { method: "DELETE" });
+      await fetch("/api/auth", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
       setIsAuthenticated(false);
-      window.location.href = "/";
+      window.location.href = "/admin/login";
     } catch (error) {
       console.error("Logout failed:", error);
     }

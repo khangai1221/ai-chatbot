@@ -339,10 +339,6 @@ export type CharacterScalarRelationFilter = {
   isNot?: Prisma.CharacterWhereInput
 }
 
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
 export type CharacterCreateNestedOneWithoutMessagesInput = {
   create?: Prisma.XOR<Prisma.CharacterCreateWithoutMessagesInput, Prisma.CharacterUncheckedCreateWithoutMessagesInput>
   connectOrCreate?: Prisma.CharacterCreateOrConnectWithoutMessagesInput

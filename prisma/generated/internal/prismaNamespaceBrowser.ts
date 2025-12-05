@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
   Character: 'Character',
   Message: 'Message'
 } as const
@@ -71,6 +72,16 @@ export const TransactionIsolationLevel = {
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
+export const UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  password: 'password',
+  createdAt: 'createdAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
 export const CharacterScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -89,6 +100,7 @@ export const MessageScalarFieldEnum = {
   role: 'role',
   sender: 'sender',
   characterId: 'characterId',
+  userId: 'userId',
   createdAt: 'createdAt'
 } as const
 

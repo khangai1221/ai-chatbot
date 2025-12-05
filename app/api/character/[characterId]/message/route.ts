@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, ChatSession } from "@google/generative-ai";
+import { requireUser } from "@/lib/auth";
+
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 if (!GEMINI_API_KEY) {
@@ -14,18 +16,27 @@ export const GET = async (
   req: NextRequest,
   { params }: { params: Promise<{ characterId: string }> }
 ) => {
-  const { characterId } = await params;
+  try {
+    const user = await requireUser();
+    const { characterId } = await params;
 
-  const chats = await prisma.message.findMany({
-    where: {
-      characterId,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+    const chats = await prisma.message.findMany({
+      where: {
+        characterId,
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
 
-  return NextResponse.json(chats);
+    return NextResponse.json(chats);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    );
+  }
 };
 
 export const POST = async (
@@ -33,6 +44,7 @@ export const POST = async (
   { params }: { params: Promise<{ characterId: string }> }
 ) => {
   try {
+    const user = await requireUser();
     const { characterId } = await params;
     const { content } = await req.json();
 
@@ -50,6 +62,7 @@ export const POST = async (
     const messages = await prisma.message.findMany({
       where: {
         characterId,
+        userId: user.id,
       },
       orderBy: {
         createdAt: "asc",
@@ -130,6 +143,11 @@ export const POST = async (
             id: characterId,
           },
         },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
         content,
         role: "user",
         sender: "user",
@@ -140,6 +158,11 @@ export const POST = async (
         character: {
           connect: {
             id: characterId,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
           },
         },
         content: text,
@@ -165,17 +188,25 @@ export const DELETE = async (
   { params }: { params: Promise<{ characterId: string }> }
 ) => {
   try {
+    const user = await requireUser();
     const { characterId } = await params;
 
-    // Delete all messages for this character
+    // Delete all messages for this character and user
     await prisma.message.deleteMany({
       where: {
         characterId,
+        userId: user.id,
       },
     });
 
     return NextResponse.json({ message: "Chat history deleted successfully" });
   } catch (error) {
+    if (error instanceof Error && error.message === "Authentication required") {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
     console.error("Error deleting chat history:", error);
     return NextResponse.json(
       {

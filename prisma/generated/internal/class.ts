@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.0.1",
   "engineVersion": "f09f2815f091dbba658cdcd2264306d88bb5bda6",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?\n// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Character {\n  id           String    @id @default(nanoid())\n  name         String\n  description  String\n  image        String\n  basePrompt   String\n  greetingText String\n  messages     Message[]\n}\n\nmodel Message {\n  id          String    @id @default(nanoid())\n  content     String\n  role        String    @default(\"user\") // 'model' , 'user'\n  sender      String    @default(\"user\")\n  character   Character @relation(fields: [characterId], references: [id])\n  characterId String\n  createdAt   DateTime  @default(now())\n}\n",
+  "inlineSchema": "datasource db {\n  provider = \"postgresql\"\n}\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"./generated\"\n}\n\nmodel User {\n  id        String    @id @default(nanoid())\n  email     String    @unique\n  password  String\n  createdAt DateTime  @default(now())\n  messages  Message[]\n}\n\nmodel Character {\n  id           String    @id @default(nanoid())\n  name         String\n  description  String\n  image        String\n  basePrompt   String\n  greetingText String\n  messages     Message[]\n}\n\nmodel Message {\n  id          String    @id @default(nanoid())\n  content     String\n  role        String    @default(\"user\")\n  sender      String    @default(\"user\")\n  character   Character @relation(fields: [characterId], references: [id])\n  characterId String\n  user        User      @relation(fields: [userId], references: [id])\n  userId      String\n  createdAt   DateTime  @default(now())\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Character\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"image\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"basePrompt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"greetingText\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"CharacterToMessage\"}],\"dbName\":null},\"Message\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sender\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"character\",\"kind\":\"object\",\"type\":\"Character\",\"relationName\":\"CharacterToMessage\"},{\"name\":\"characterId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"password\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"MessageToUser\"}],\"dbName\":null},\"Character\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"image\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"basePrompt\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"greetingText\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"messages\",\"kind\":\"object\",\"type\":\"Message\",\"relationName\":\"CharacterToMessage\"}],\"dbName\":null},\"Message\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"content\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"role\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sender\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"character\",\"kind\":\"object\",\"type\":\"Character\",\"relationName\":\"CharacterToMessage\"},{\"name\":\"characterId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"MessageToUser\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -58,8 +58,8 @@ export interface PrismaClientConstructor {
    * @example
    * ```
    * const prisma = new PrismaClient()
-   * // Fetch zero or more Characters
-   * const characters = await prisma.character.findMany()
+   * // Fetch zero or more Users
+   * const users = await prisma.user.findMany()
    * ```
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
@@ -80,8 +80,8 @@ export interface PrismaClientConstructor {
  * @example
  * ```
  * const prisma = new PrismaClient()
- * // Fetch zero or more Characters
- * const characters = await prisma.character.findMany()
+ * // Fetch zero or more Users
+ * const users = await prisma.user.findMany()
  * ```
  * 
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
@@ -175,6 +175,16 @@ export interface PrismaClient<
   }>>
 
       /**
+   * `prisma.user`: Exposes CRUD operations for the **User** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Users
+    * const users = await prisma.user.findMany()
+    * ```
+    */
+  get user(): Prisma.UserDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
    * `prisma.character`: Exposes CRUD operations for the **Character** model.
     * Example usage:
     * ```ts
