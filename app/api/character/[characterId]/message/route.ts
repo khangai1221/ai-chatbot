@@ -88,7 +88,7 @@ export const POST = async (
         { role: "model", parts: [{ text: character.greetingText }] },
       ];
 
-      messages.forEach((message) => {
+      messages.forEach((message: any) => {
         history.push({
           role: (message.role || "user") as "user" | "model",
           parts: [{ text: message.content }],
